@@ -1,0 +1,21 @@
+{
+  "name": "cafe-aroma-mern",
+  "version": "1.0.0",
+  "description": "Café Aroma Full-Stack MERN Application",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "client": "npm --prefix client dev",
+    "client:build": "npm --prefix client run build",
+    "seed": "npm --prefix server run seed"
+  },
+  "keywords": [
+    "mern",
+    "react",
+    "express",
+    "mongodb",
+    "cafe-aroma"
+  ],
+  "author": "",
+  "license": "ISC"
+}
