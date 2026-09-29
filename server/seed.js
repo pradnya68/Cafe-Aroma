@@ -39,6 +39,13 @@ const seedDB = async () => {
       role: 'admin',
     });
 
+    const superAdminUser = await User.create({
+      name: 'Café Aroma Superadmin',
+      email: process.env.SUPERADMIN_EMAIL || 'superadmin@cafearoma.com',
+      password: process.env.SUPERADMIN_PASSWORD || 'superadmin123',
+      role: 'superadmin',
+    });
+
     const customerUser = await User.create({
       name: 'Sophia Patel',
       email: 'customer@example.com',
@@ -47,6 +54,7 @@ const seedDB = async () => {
     });
 
     console.log(`Created Admin: ${adminUser.email} / admin123`);
+    console.log(`Created Superadmin: ${superAdminUser.email} / ${process.env.SUPERADMIN_PASSWORD || 'superadmin123'}`);
     console.log(`Created Customer: ${customerUser.email} / customer123`);
 
     // Insert categories

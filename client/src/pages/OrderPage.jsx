@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { calculateDistance } from '../utils/geo';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI } from '../services/api';
@@ -36,6 +38,22 @@ const OrderPage = () => {
   const [error, setError] = useState(null);
   const [placedOrder, setPlacedOrder] = useState(null);
 
+  // Delivery Location States
+  const [deliveryLocation, setDeliveryLocation] = useState(null);
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const autocompleteRef = useRef(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
+
+  const cafeLat = Number(import.meta.env.VITE_CAFE_LATITUDE || 18.5793);
+  const cafeLon = Number(import.meta.env.VITE_CAFE_LONGITUDE || 73.7816);
+  const maxRadiusKm = Number(import.meta.env.VITE_DELIVERY_RADIUS_KM || 10);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({ ...prev, [name]: value }));
@@ -53,9 +71,15 @@ const OrderPage = () => {
       return;
     }
 
-    if (customerDetails.orderType === 'delivery' && !customerDetails.deliveryAddress.trim()) {
-      setError('Please provide a delivery address.');
-      return;
+    if (customerDetails.orderType === 'delivery') {
+      if (!deliveryLocation || !deliveryLocation.latitude || !deliveryLocation.longitude) {
+        setError('Please select or detect your delivery location.');
+        return;
+      }
+      if (distanceKm > maxRadiusKm) {
+        setError(`Delivery unavailable. You are ${distanceKm.toFixed(1)} km away. Maximum delivery radius is ${maxRadiusKm} km.`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -71,7 +95,10 @@ const OrderPage = () => {
           image: i.image,
         })),
         totalAmount: subtotal,
-        customerDetails,
+        customerDetails: {
+          ...customerDetails,
+          deliveryLocation: customerDetails.orderType === 'delivery' ? deliveryLocation : null,
+        },
       };
 
       const res = await orderAPI.create(orderPayload);
@@ -85,6 +112,86 @@ const OrderPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGetCurrentLocation = () => {
+    setGettingLocation(true);
+    setLocationError(null);
+    if (!navigator.geolocation) {
+      setLocationError('Unable to detect your current location. Please try again or search for your address manually.');
+      setGettingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          if (!window.google || !window.google.maps) {
+             throw new Error("Google Maps not loaded");
+          }
+          // Reverse geocode to get address string
+          const geocoder = new window.google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
+          
+          if (response.results && response.results.length > 0) {
+            const formattedAddress = response.results[0].formatted_address || response.results[0].formattedAddress;
+            const placeId = response.results[0].place_id || '';
+            updateDeliveryLocation({ formattedAddress, latitude, longitude, placeId, isCurrentLocation: true });
+          } else {
+             throw new Error("No address found");
+          }
+        } catch (err) {
+          setLocationError('Location detected, but the address could not be determined. Please search for your address manually.');
+        } finally {
+          setGettingLocation(false);
+        }
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+           setLocationError('Location permission was denied. Please allow location access or search for your delivery address manually.');
+        } else if (err.code === err.TIMEOUT) {
+           setLocationError('Location request timed out. Please try again.');
+        } else {
+           setLocationError('Unable to detect your current location. Please try again or search for your address manually.');
+        }
+        setGettingLocation(false);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (!place.geometry || !place.geometry.location) {
+        setLocationError('Invalid address. Please select an address from the dropdown.');
+        return;
+      }
+      
+      updateDeliveryLocation({
+        formattedAddress: place.formatted_address,
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
+        placeId: place.place_id,
+        isCurrentLocation: false
+      });
+    }
+  };
+
+  const updateDeliveryLocation = (loc) => {
+    setLocationError(null);
+    setDeliveryLocation(loc);
+    const dist = calculateDistance(cafeLat, cafeLon, loc.latitude, loc.longitude);
+    setDistanceKm(dist);
+    setCustomerDetails(prev => ({ ...prev, deliveryAddress: loc.formattedAddress }));
+  };
+
+  const handleChangeLocation = () => {
+    setDeliveryLocation(null);
+    setDistanceKm(null);
+    setLocationError(null);
+    setCustomerDetails(prev => ({ ...prev, deliveryAddress: '' }));
   };
 
   if (placedOrder) {
@@ -283,19 +390,85 @@ const OrderPage = () => {
                 )}
 
                 {customerDetails.orderType === 'delivery' && (
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider font-semibold text-ink-muted mb-1">
-                      Delivery Address *
+                  <div className="bg-cream/40 p-4 rounded-xl border border-line">
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-ink-muted mb-3">
+                      Delivery Location *
                     </label>
-                    <textarea
-                      name="deliveryAddress"
-                      rows="2"
-                      required
-                      placeholder="Apartment, Street name, Pune locality, Landmark"
-                      value={customerDetails.deliveryAddress}
-                      onChange={handleChange}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-cream/40 border border-line text-xs text-espresso focus:outline-none focus:border-caramel"
-                    />
+                    
+                    {locationError && (
+                      <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                        {locationError}
+                      </div>
+                    )}
+                    
+                    {deliveryLocation ? (
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-espresso">
+                              {deliveryLocation.isCurrentLocation ? '✓ Current location detected' : 'Location selected'}
+                            </p>
+                            <p className="text-xs text-ink-muted mt-1">{deliveryLocation.formattedAddress}</p>
+                          </div>
+                        </div>
+                        
+                        {distanceKm !== null && (
+                          <div className={`p-3 rounded-lg border text-xs ${distanceKm <= maxRadiusKm ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                            <div className="font-semibold mb-1">
+                              Distance from Café Aroma: {distanceKm.toFixed(1)} km
+                            </div>
+                            {distanceKm <= maxRadiusKm ? (
+                              <div className="flex items-center gap-1">✓ Delivery available</div>
+                            ) : (
+                              <div className="flex items-center gap-1">Delivery is available only within {maxRadiusKm} km of Café Aroma.</div>
+                            )}
+                          </div>
+                        )}
+                        
+                        <button
+                          type="button"
+                          onClick={handleChangeLocation}
+                          className="text-xs text-caramel hover:text-espresso font-semibold underline mt-2"
+                        >
+                          Change Location
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <button
+                          type="button"
+                          onClick={handleGetCurrentLocation}
+                          disabled={gettingLocation}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-espresso text-cream text-xs font-semibold hover:bg-espresso/90 transition disabled:opacity-50"
+                        >
+                          {gettingLocation ? <Loader2 size={14} className="animate-spin" /> : <MapPin size={14} />}
+                          <span>{gettingLocation ? 'Detecting your current location...' : '📍 Use My Current Location'}</span>
+                        </button>
+                        
+                        <div className="flex items-center gap-2 text-xs text-ink-muted">
+                          <div className="flex-1 h-px bg-line"></div>
+                          <span>OR</span>
+                          <div className="flex-1 h-px bg-line"></div>
+                        </div>
+                        
+                        {isLoaded ? (
+                          <Autocomplete
+                            onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                            onPlaceChanged={handlePlaceChanged}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Search your delivery address..."
+                              className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-line text-xs text-espresso focus:outline-none focus:border-caramel"
+                              onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                            />
+                          </Autocomplete>
+                        ) : (
+                          <div className="text-xs text-ink-muted text-center">Loading location services...</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -317,8 +490,8 @@ const OrderPage = () => {
                 {/* Place Order CTA */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full btn-cafe btn-primary text-xs py-3.5 tracking-widest font-bold shadow-lg flex items-center justify-center gap-2 mt-4"
+                  disabled={loading || (customerDetails.orderType === 'delivery' && (!deliveryLocation || distanceKm > maxRadiusKm))}
+                  className="w-full btn-cafe btn-primary text-xs py-3.5 tracking-widest font-bold shadow-lg flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>

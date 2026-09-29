@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import User from './models/User.js';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -14,6 +15,7 @@ import contactRoutes from './routes/contactRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import testimonialRoutes from './routes/testimonialRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import superadminRoutes from './routes/superadminRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +48,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/superadmin', superadminRoutes);
 
 // Error Middleware
 app.use(notFound);
@@ -53,6 +56,23 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`☕ Café Aroma Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  
+  // Auto-seed superadmin
+  try {
+    const existingSuperadmin = await User.findOne({ email: 'superadmin@cafearoma.com' });
+    if (!existingSuperadmin) {
+      await User.create({
+        name: 'Super Admin',
+        email: 'superadmin@cafearoma.com',
+        password: 'superadmin123',
+        role: 'superadmin',
+        isActive: true
+      });
+      console.log('✅ Default Superadmin created: superadmin@cafearoma.com / superadmin123');
+    }
+  } catch (err) {
+    console.error('Error auto-seeding superadmin:', err);
+  }
 });

@@ -28,7 +28,9 @@ const LoginPage = () => {
     try {
       const res = await login(email, password);
       if (res.success) {
-        if (res.user.role === 'admin') {
+        if (res.user.role === 'superadmin') {
+          navigate('/superadmin/dashboard');
+        } else if (res.user.role === 'admin') {
           navigate('/admin');
         } else {
           navigate(from);
@@ -41,6 +43,12 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillSuperadmin = () => {
+    setEmail('superadmin@cafearoma.com');
+    setPassword('superadmin123');
+    setError(null);
   };
 
   const fillAdmin = () => {
@@ -133,22 +141,30 @@ const LoginPage = () => {
           <p className="text-[11px] uppercase tracking-wider font-semibold text-center text-ink-muted mb-3">
             Quick Test Accounts
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={fillSuperadmin}
+              className="flex items-center justify-center gap-1 py-2 px-1 rounded border border-line hover:border-gold hover:bg-gold/10 text-espresso text-[10px] font-semibold transition"
+            >
+              <ShieldCheck size={12} className="text-gold" />
+              <span>Superadmin</span>
+            </button>
             <button
               type="button"
               onClick={fillAdmin}
-              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded border border-line hover:border-gold hover:bg-gold/10 text-espresso text-[11px] font-semibold transition"
+              className="flex items-center justify-center gap-1 py-2 px-1 rounded border border-line hover:border-gold hover:bg-gold/10 text-espresso text-[10px] font-semibold transition"
             >
-              <ShieldCheck size={14} className="text-gold" />
-              <span>Admin Demo</span>
+              <ShieldCheck size={12} className="text-gold" />
+              <span>Admin</span>
             </button>
             <button
               type="button"
               onClick={fillCustomer}
-              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded border border-line hover:border-caramel hover:bg-cream/60 text-espresso text-[11px] font-semibold transition"
+              className="flex items-center justify-center gap-1 py-2 px-1 rounded border border-line hover:border-caramel hover:bg-cream/60 text-espresso text-[10px] font-semibold transition"
             >
-              <User size={14} className="text-caramel" />
-              <span>Customer Demo</span>
+              <User size={12} className="text-caramel" />
+              <span>Customer</span>
             </button>
           </div>
         </div>

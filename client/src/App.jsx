@@ -29,6 +29,8 @@ function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
+  const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/superadmin');
+
   // Initialize is-ready state for hero animations and scroll listener
   useEffect(() => {
     // Add is-ready class to body after short delay (exact match to reference script)
@@ -159,7 +161,7 @@ function App() {
       </div>
 
       {/* Header / Navbar */}
-      <Navbar />
+      {!isAdminRoute && <Navbar />}
 
       {/* Main Content Pages */}
       <Routes>
@@ -181,10 +183,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/superadmin/dashboard"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       {/* Footer */}
-      <Footer />
+      {!isAdminRoute && <Footer />}
 
       {/* Back to Top Button */}
       <button
@@ -198,7 +208,7 @@ function App() {
       </button>
 
       {/* Floating Cart Button for MERN stack (shows when items are in cart) */}
-      {totalItems > 0 && (
+      {!isAdminRoute && totalItems > 0 && (
         <button
           type="button"
           className="floating-cart-btn"
@@ -211,7 +221,7 @@ function App() {
       )}
 
       {/* Admin Floating Badge if logged in as Admin */}
-      {isAdmin && (
+      {!isAdminRoute && isAdmin && (
         <Link
           to="/admin"
           className="nav-user-pill"
@@ -232,7 +242,7 @@ function App() {
       )}
 
       {/* Cart Drawer */}
-      <CartDrawer />
+      {!isAdminRoute && <CartDrawer />}
 
       {/* Toast Notification */}
       <Toast />

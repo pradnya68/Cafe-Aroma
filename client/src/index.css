@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --espresso: #3A2118;
   --dark-coffee: #24130E;
@@ -3440,4 +3444,34 @@ body.is-ready .hero__meta {
 .nav-user-pill:hover {
   border-color: var(--gold);
   background: rgba(201, 154, 91, 0.1);
+}
+
+/* Additional global button classes for legacy/custom components */
+.btn-cafe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--espresso);
+  color: var(--white);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--caramel);
+}
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-dark {
+  background-color: var(--dark-coffee);
+  color: var(--white);
+}
+.btn-dark:hover:not(:disabled) {
+  background-color: var(--espresso);
+  color: var(--gold);
 }

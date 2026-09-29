@@ -52,7 +52,14 @@ const orderSchema = new mongoose.Schema(
         default: 'dine-in',
       },
       tableNumber: { type: String, default: '' },
-      deliveryAddress: { type: String, default: '' },
+      deliveryAddress: { type: String, default: '' }, // legacy string address
+      deliveryLocation: {
+        formattedAddress: { type: String },
+        latitude: { type: Number },
+        longitude: { type: Number },
+        placeId: { type: String },
+      },
+      deliveryDistanceKm: { type: Number },
       specialNotes: { type: String, default: '' },
     },
   },

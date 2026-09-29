@@ -1,4 +1,5 @@
 import Order from '../models/Order.js';
+import { calculateDistance } from '../utils/geo.js';
 
 // @desc   Create new order
 // @route  POST /api/orders
@@ -23,6 +24,44 @@ export const createOrder = async (req, res, next) => {
 
     // Attach user ID if authenticated via token
     const userId = req.user ? req.user._id : null;
+
+    let deliveryDistanceKm = null;
+
+    if (customerDetails.orderType === 'delivery') {
+      const { deliveryLocation } = customerDetails;
+      
+      if (!deliveryLocation || !deliveryLocation.latitude || !deliveryLocation.longitude) {
+        return res.status(400).json({
+          success: false,
+          message: 'Delivery coordinates are required for delivery orders.',
+        });
+      }
+
+      const cafeLat = parseFloat(process.env.CAFE_LATITUDE);
+      const cafeLon = parseFloat(process.env.CAFE_LONGITUDE);
+      const radiusKm = parseFloat(process.env.DELIVERY_RADIUS_KM || 10);
+
+      if (isNaN(cafeLat) || isNaN(cafeLon)) {
+        return res.status(500).json({
+          success: false,
+          message: 'Server configuration error: Cafe coordinates not set.',
+        });
+      }
+
+      deliveryDistanceKm = calculateDistance(cafeLat, cafeLon, deliveryLocation.latitude, deliveryLocation.longitude);
+
+      if (deliveryDistanceKm > radiusKm) {
+        return res.status(400).json({
+          success: false,
+          message: `Delivery is available only within ${radiusKm} km of Café Aroma.`,
+          distanceKm: parseFloat(deliveryDistanceKm.toFixed(2)),
+          maxDeliveryRadiusKm: radiusKm
+        });
+      }
+      
+      // Save it back to customerDetails to store in DB
+      customerDetails.deliveryDistanceKm = deliveryDistanceKm;
+    }
 
     const order = await Order.create({
       user: userId,
@@ -49,8 +88,8 @@ export const getOrders = async (req, res, next) => {
   try {
     let query = {};
 
-    // If not admin, only fetch own orders
-    if (req.user.role !== 'admin') {
+    // If not admin or superadmin, only fetch own orders
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       query.user = req.user._id;
     }
 

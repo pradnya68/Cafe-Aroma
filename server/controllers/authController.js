@@ -29,8 +29,8 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // Role can only be set to admin if specifically allowed or seeded
-    const userRole = role === 'admin' ? 'admin' : 'user';
+    // Role is always 'customer' for public registration. Only superadmins can create admins.
+    const userRole = 'customer';
 
     const user = await User.create({
       name,
