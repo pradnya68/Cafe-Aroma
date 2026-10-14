@@ -16,6 +16,7 @@ import newsletterRoutes from './routes/newsletterRoutes.js';
 import testimonialRoutes from './routes/testimonialRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import superadminRoutes from './routes/superadminRoutes.js';
+import locationRoutes from './routes/locationRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/location', locationRoutes);
 
 // Error Middleware
 app.use(notFound);

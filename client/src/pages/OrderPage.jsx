@@ -1,6 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { calculateDistance } from '../utils/geo';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -43,12 +42,8 @@ const OrderPage = () => {
   const [distanceKm, setDistanceKm] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [gettingLocation, setGettingLocation] = useState(false);
-  const autocompleteRef = useRef(null);
-
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
-  });
+  const [manualAddress, setManualAddress] = useState('');
+  const [searchingLocation, setSearchingLocation] = useState(false);
 
   const cafeLat = Number(import.meta.env.VITE_CAFE_LATITUDE || 18.5793);
   const cafeLon = Number(import.meta.env.VITE_CAFE_LONGITUDE || 73.7816);
@@ -127,22 +122,23 @@ const OrderPage = () => {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          if (!window.google || !window.google.maps) {
-             throw new Error("Google Maps not loaded");
-          }
-          // Reverse geocode to get address string
-          const geocoder = new window.google.maps.Geocoder();
-          const response = await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/location/reverse?lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
           
-          if (response.results && response.results.length > 0) {
-            const formattedAddress = response.results[0].formatted_address || response.results[0].formattedAddress;
-            const placeId = response.results[0].place_id || '';
-            updateDeliveryLocation({ formattedAddress, latitude, longitude, placeId, isCurrentLocation: true });
+          if (res.ok && data.success) {
+            updateDeliveryLocation({ 
+              formattedAddress: data.data.formattedAddress, 
+              latitude: data.data.latitude, 
+              longitude: data.data.longitude, 
+              placeId: data.data.placeId || '', 
+              isCurrentLocation: true 
+            });
           } else {
-             throw new Error("No address found");
+            setLocationError(data.message || 'Location detected, but the address could not be determined. Please search manually.');
           }
         } catch (err) {
-          setLocationError('Location detected, but the address could not be determined. Please search for your address manually.');
+          console.error("Geocoding setup error:", err);
+          setLocationError("Failed to communicate with location service. Please try searching manually.");
         } finally {
           setGettingLocation(false);
         }
@@ -161,21 +157,36 @@ const OrderPage = () => {
     );
   };
 
-  const handlePlaceChanged = () => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      if (!place.geometry || !place.geometry.location) {
-        setLocationError('Invalid address. Please select an address from the dropdown.');
-        return;
-      }
+  const handleManualSearch = async () => {
+    if (!manualAddress.trim()) {
+      setLocationError('Please enter an address to search.');
+      return;
+    }
+    
+    setSearchingLocation(true);
+    setLocationError(null);
+    
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/location/geocode?address=${encodeURIComponent(manualAddress)}`);
+      const data = await res.json();
       
-      updateDeliveryLocation({
-        formattedAddress: place.formatted_address,
-        latitude: place.geometry.location.lat(),
-        longitude: place.geometry.location.lng(),
-        placeId: place.place_id,
-        isCurrentLocation: false
-      });
+      if (res.ok && data.success) {
+        updateDeliveryLocation({
+          formattedAddress: data.data.formattedAddress,
+          latitude: data.data.latitude,
+          longitude: data.data.longitude,
+          placeId: data.data.placeId || '',
+          isCurrentLocation: false
+        });
+        setManualAddress(''); // Clear input after successful search
+      } else {
+        setLocationError(data.message || 'Could not find that address. Please try another one.');
+      }
+    } catch (err) {
+      console.error("Manual search error:", err);
+      setLocationError('Failed to search address. Please try again later.');
+    } finally {
+      setSearchingLocation(false);
     }
   };
 
@@ -452,21 +463,24 @@ const OrderPage = () => {
                           <div className="flex-1 h-px bg-line"></div>
                         </div>
                         
-                        {isLoaded ? (
-                          <Autocomplete
-                            onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                            onPlaceChanged={handlePlaceChanged}
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Search your delivery address..."
+                            className="flex-1 px-3.5 py-2.5 rounded-lg bg-white border border-line text-xs text-espresso focus:outline-none focus:border-caramel"
+                            value={manualAddress}
+                            onChange={(e) => setManualAddress(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleManualSearch(); } }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleManualSearch}
+                            disabled={searchingLocation || !manualAddress.trim()}
+                            className="px-4 py-2.5 rounded-lg bg-caramel text-white text-xs font-semibold hover:bg-caramel/90 transition disabled:opacity-50"
                           >
-                            <input
-                              type="text"
-                              placeholder="Search your delivery address..."
-                              className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-line text-xs text-espresso focus:outline-none focus:border-caramel"
-                              onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                            />
-                          </Autocomplete>
-                        ) : (
-                          <div className="text-xs text-ink-muted text-center">Loading location services...</div>
-                        )}
+                            {searchingLocation ? <Loader2 size={14} className="animate-spin" /> : 'Search'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
