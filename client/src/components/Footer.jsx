@@ -42,6 +42,7 @@ const Footer = () => {
               <a href="#about">About</a>
               <a href="#menu">Menu</a>
               <a href="#gallery">Gallery</a>
+              <Link to="/birthday">Birthday Specials 🎂</Link>
             </>
           ) : (
             <>
@@ -49,6 +50,7 @@ const Footer = () => {
               <Link to="/about">About</Link>
               <Link to="/menu">Menu</Link>
               <Link to="/gallery">Gallery</Link>
+              <Link to="/birthday">Birthday Specials 🎂</Link>
             </>
           )}
         </div>

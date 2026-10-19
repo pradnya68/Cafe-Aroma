@@ -1692,95 +1692,157 @@ body.is-ready .hero__meta {
 
 .testimonial-carousel {
   min-width: 0;
+  width: 100%;
 }
 
 .testimonial-viewport {
   position: relative;
-  min-height: 310px;
-  overflow: hidden;
+  width: 100%;
 }
 
-.testimonial-slide {
-  position: absolute;
-  inset: 0;
+.testimonial-card {
+  position: relative;
   display: flex;
-  align-items: flex-start;
   flex-direction: column;
-  padding: 47px 54px 42px;
-  border: 1px solid rgba(58, 33, 24, .16);
-  background: rgba(255, 253, 249, .55);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(22px);
-  transition: opacity .55s ease, transform .55s var(--ease);
+  padding: 44px 48px 38px;
+  border: 1px solid rgba(184, 121, 74, 0.22);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 0 20px 48px rgba(36, 19, 14, 0.08), 0 4px 14px rgba(36, 19, 14, 0.04);
+  transition: opacity 0.35s ease, transform 0.35s var(--ease);
+  will-change: opacity, transform;
 }
 
-.testimonial-slide.is-active {
+.testimonial-card.is-fading {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.testimonial-card.is-active {
   opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0);
+  transform: translateY(0);
+}
+
+.testimonial-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .quote-mark {
   color: var(--caramel);
   font-family: var(--display);
-  font-size: 85px;
-  line-height: .7;
+  font-size: 76px;
+  line-height: 0.6;
 }
 
-.testimonial-slide blockquote {
-  max-width: 580px;
-  margin: 20px 0 26px;
+.testimonial-card-stars {
+  color: var(--gold);
+  font-size: 15px;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+/* Quote box with sizer to eliminate layout shift */
+.testimonial-quote-box {
+  position: relative;
+  margin: 14px 0 24px;
+  min-height: 110px;
+}
+
+.testimonial-quote-sizer {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.3rem, 2.1vw, 1.8rem);
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.testimonial-quote-typed {
+  position: absolute;
+  inset: 0;
+  margin: 0;
   color: var(--espresso);
   font-family: var(--display);
-  font-size: clamp(1.45rem, 2.45vw, 2.35rem);
-  letter-spacing: -.035em;
-  line-height: 1.2;
+  font-size: clamp(1.3rem, 2.1vw, 1.8rem);
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  color: var(--caramel);
+  font-family: var(--body);
+  font-weight: 300;
+  margin-left: 3px;
+  animation: cursor-blink 0.75s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .testimonial-author {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(58, 33, 24, 0.08);
 }
 
 .author-avatar {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   place-items: center;
   color: var(--white);
   border-radius: 50%;
-  background: var(--coffee);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .08em;
-}
-
-.testimonial-author strong,
-.testimonial-author small {
-  display: block;
-}
-
-.testimonial-author strong {
-  color: var(--espresso);
+  background: linear-gradient(135deg, var(--coffee), var(--dark-coffee));
+  border: 1px solid rgba(201, 154, 91, 0.35);
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
 }
 
-.testimonial-author small {
-  margin-top: 1px;
+.author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-meta strong {
+  color: var(--espresso);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.author-meta small {
+  margin-top: 3px;
   color: var(--ink-muted);
-  font-size: 9px;
-  letter-spacing: .05em;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
 }
 
 .carousel-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 26px;
+  margin-top: 24px;
+}
+
+.carousel-controls--center {
+  justify-content: center;
 }
 
 .carousel-dots {
@@ -1790,47 +1852,25 @@ body.is-ready .hero__meta {
 }
 
 .carousel-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   padding: 0;
+  border: none;
   border-radius: 50%;
-  background: rgba(111, 69, 50, .3);
-  transition: width .35s var(--ease), border-radius .35s var(--ease), background-color .35s ease;
+  background: rgba(111, 69, 50, 0.28);
+  cursor: pointer;
+  transition: width 0.35s var(--ease), border-radius 0.35s var(--ease), background-color 0.35s ease;
+}
+
+.carousel-dot:hover {
+  background: rgba(111, 69, 50, 0.55);
 }
 
 .carousel-dot.is-active {
-  width: 28px;
-  border-radius: 5px;
+  width: 32px;
+  border-radius: 6px;
   background: var(--caramel);
-}
-
-.carousel-arrows {
-  display: flex;
-  gap: 9px;
-}
-
-.round-button {
-  display: grid;
-  width: 41px;
-  height: 41px;
-  place-items: center;
-  color: var(--espresso);
-  border: 1px solid rgba(58, 33, 24, .25);
-  border-radius: 50%;
-  background: transparent;
-  transition: color .3s ease, background-color .3s ease, border-color .3s ease, transform .35s var(--ease);
-}
-
-.round-button svg {
-  width: 17px;
-  height: 17px;
-}
-
-.round-button:hover {
-  color: var(--white);
-  border-color: var(--espresso);
-  background: var(--espresso);
-  transform: translateY(-3px);
+  box-shadow: 0 2px 8px rgba(184, 121, 74, 0.35);
 }
 
 /* Reservation */
@@ -3184,16 +3224,18 @@ body.is-ready .hero__meta {
     max-width: 400px;
   }
 
-  .testimonial-viewport {
-    min-height: 350px;
+  .testimonial-card {
+    padding: 32px 24px 26px;
+    border-radius: 16px;
   }
 
-  .testimonial-slide {
-    padding: 35px 25px 28px;
+  .testimonial-quote-box {
+    min-height: 135px;
   }
 
-  .testimonial-slide blockquote {
-    font-size: clamp(1.45rem, 7vw, 2.1rem);
+  .testimonial-quote-sizer,
+  .testimonial-quote-typed {
+    font-size: clamp(1.15rem, 5vw, 1.45rem);
   }
 
   .reservation-grid {
@@ -3475,3 +3517,437 @@ body.is-ready .hero__meta {
   background-color: var(--espresso);
   color: var(--gold);
 }
+
+/* ======================================================== */
+/* BIRTHDAY CELEBRATION & SURPRISE OFFERS STYLES            */
+/* ======================================================== */
+
+/* --- Birthday Home Banner --- */
+.bday-banner-section {
+  position: relative;
+  padding: 60px 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--dark-coffee) 0%, #1a0d09 60%, var(--espresso) 100%);
+  border-top: 1px solid rgba(201, 154, 91, 0.25);
+  border-bottom: 1px solid rgba(201, 154, 91, 0.25);
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+}
+
+.bday-banner-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(201, 154, 91, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.bday-banner-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 154, 91, 0.2) 0%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.bday-banner-glow--left {
+  top: -150px;
+  left: -100px;
+}
+
+.bday-banner-glow--right {
+  bottom: -200px;
+  right: -100px;
+}
+
+.bday-banner-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(58, 33, 24, 0.75) 0%, rgba(36, 19, 14, 0.95) 100%);
+  border: 1px solid rgba(201, 154, 91, 0.35);
+  border-radius: 28px;
+  padding: 48px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), 0 0 40px rgba(201, 154, 91, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+
+.bday-banner-card:hover {
+  border-color: rgba(201, 154, 91, 0.6);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), 0 0 60px rgba(201, 154, 91, 0.25);
+}
+
+/* --- Floating Balloons --- */
+.bday-balloon {
+  position: absolute;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  box-shadow: inset -5px -5px 12px rgba(0, 0, 0, 0.35), inset 6px 6px 12px rgba(255, 255, 255, 0.4), 0 10px 25px rgba(0, 0, 0, 0.25);
+  animation: balloonFloat 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.bday-balloon::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 7px solid currentColor;
+}
+
+.bday-balloon-string {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 1.5px;
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(201, 154, 91, 0.6), transparent);
+  transform-origin: top center;
+  animation: stringSway 4s ease-in-out infinite alternate;
+}
+
+@keyframes balloonFloat {
+  0% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-16px) rotate(3deg); }
+  100% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+@keyframes stringSway {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(5deg); }
+}
+
+/* --- 3D Birthday Gift Box --- */
+.bday-giftbox-stage {
+  perspective: 1000px;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bday-giftbox-3d {
+  width: 130px;
+  height: 130px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: giftboxHover 4s ease-in-out infinite alternate;
+}
+
+@keyframes giftboxHover {
+  0% {
+    transform: rotateX(-12deg) rotateY(-20deg) translateY(0);
+  }
+  50% {
+    transform: rotateX(-8deg) rotateY(15deg) translateY(-14px);
+  }
+  100% {
+    transform: rotateX(-14deg) rotateY(-10deg) translateY(-4px);
+  }
+}
+
+.bday-box-face {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  background: linear-gradient(145deg, #422216, #24130E);
+  border: 1px solid rgba(201, 154, 91, 0.3);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.4);
+}
+
+.bday-box-face--front  { transform: translateZ(65px); }
+.bday-box-face--back   { transform: rotateY(180deg) translateZ(65px); }
+.bday-box-face--left   { transform: rotateY(-90deg) translateZ(65px); }
+.bday-box-face--right  { transform: rotateY(90deg) translateZ(65px); }
+.bday-box-face--bottom { transform: rotateX(-90deg) translateZ(65px); box-shadow: 0 30px 40px rgba(0,0,0,0.6); }
+
+/* Golden satin ribbons running across faces */
+.bday-box-face::before,
+.bday-lid-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% - 13px);
+  width: 26px;
+  height: 100%;
+  background: linear-gradient(90deg, #b8863f 0%, #ecd399 50%, #ad7c37 100%);
+  box-shadow: 0 0 10px rgba(201, 154, 91, 0.4);
+}
+
+.bday-box-face::after,
+.bday-lid-top::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 13px);
+  left: 0;
+  width: 100%;
+  height: 26px;
+  background: linear-gradient(180deg, #b8863f 0%, #ecd399 50%, #ad7c37 100%);
+  box-shadow: 0 0 10px rgba(201, 154, 91, 0.4);
+}
+
+/* 3D Box Lid */
+.bday-box-lid {
+  position: absolute;
+  top: -15px;
+  left: -7px;
+  width: 144px;
+  height: 30px;
+  transform-style: preserve-3d;
+  transform: translateZ(0);
+  transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bday-lid-top {
+  position: absolute;
+  width: 144px;
+  height: 144px;
+  background: linear-gradient(145deg, #512b1d, #2f1912);
+  transform: rotateX(90deg) translateZ(15px);
+  border: 1px solid rgba(201, 154, 91, 0.4);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.bday-lid-front {
+  position: absolute;
+  width: 144px;
+  height: 28px;
+  background: linear-gradient(180deg, #442418, #2a150e);
+  transform: translateZ(72px);
+  border-bottom: 2px solid #C99A5B;
+}
+
+.bday-lid-left {
+  position: absolute;
+  width: 144px;
+  height: 28px;
+  background: linear-gradient(180deg, #381d13, #22110a);
+  transform: rotateY(-90deg) translateZ(72px);
+  border-bottom: 2px solid #C99A5B;
+}
+
+.bday-lid-right {
+  position: absolute;
+  width: 144px;
+  height: 28px;
+  background: linear-gradient(180deg, #4e291a, #2a150e);
+  transform: rotateY(90deg) translateZ(72px);
+  border-bottom: 2px solid #C99A5B;
+}
+
+/* 3D Realistic Ribbon Bow */
+.bday-bow {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%) translateZ(40px);
+  width: 70px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.bday-bow-center {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe2a3 20%, #c99a5b 70%, #9e6e2e 100%);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 14px rgba(255, 226, 163, 0.6);
+  z-index: 5;
+}
+
+.bday-bow-loop {
+  position: absolute;
+  width: 44px;
+  height: 28px;
+  border: 4px solid #ecd399;
+  background: linear-gradient(135deg, rgba(236, 211, 153, 0.95), rgba(201, 154, 91, 0.9));
+  border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
+
+.bday-bow-loop--left {
+  transform: rotate(-35deg) translateX(-18px);
+}
+
+.bday-bow-loop--right {
+  transform: rotate(35deg) scaleX(-1) translateX(-18px);
+}
+
+/* --- Box Opening and Burst State --- */
+.bday-giftbox-3d.is-bursting {
+  animation: boxBurstShake 0.4s ease-in-out infinite;
+}
+
+@keyframes boxBurstShake {
+  0%, 100% { transform: rotateX(-10deg) rotateY(0deg) scale(1.05); }
+  25% { transform: rotateX(-12deg) rotateY(-6deg) scale(1.08); }
+  75% { transform: rotateX(-8deg) rotateY(6deg) scale(1.08); }
+}
+
+.bday-giftbox-3d.has-exploded .bday-box-lid {
+  transform: translateY(-130px) rotateX(-120deg) rotateZ(35deg) scale(0.9);
+  opacity: 0;
+  transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bday-giftbox-3d.has-exploded .bday-box-face--front {
+  transform: rotateX(80deg) translateZ(65px);
+  opacity: 0.15;
+  transition: all 0.7s var(--ease);
+}
+
+.bday-giftbox-3d.has-exploded .bday-box-face--left {
+  transform: rotateY(-90deg) rotateX(80deg) translateZ(65px);
+  opacity: 0.15;
+  transition: all 0.7s var(--ease);
+}
+
+.bday-giftbox-3d.has-exploded .bday-box-face--right {
+  transform: rotateY(90deg) rotateX(80deg) translateZ(65px);
+  opacity: 0.15;
+  transition: all 0.7s var(--ease);
+}
+
+/* Shockwave ring at explosion */
+.bday-shockwave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #ffe2a3;
+  box-shadow: 0 0 35px #C99A5B;
+  animation: shockwaveExpand 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes shockwaveExpand {
+  0% { width: 40px; height: 40px; opacity: 1; border-width: 6px; }
+  100% { width: 550px; height: 550px; opacity: 0; border-width: 1px; }
+}
+
+/* Floating Gift Elements during blast */
+.bday-floating-item {
+  position: absolute;
+  font-size: 28px;
+  animation: floatErupt 2.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 20;
+}
+
+@keyframes floatErupt {
+  0% {
+    transform: translate(0, 0) scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(1.15) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+/* --- Countdown Display --- */
+.bday-countdown-ring {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid rgba(201, 154, 91, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  position: relative;
+  box-shadow: 0 0 25px rgba(201, 154, 91, 0.3);
+  background: rgba(36, 19, 14, 0.8);
+}
+
+.bday-countdown-number {
+  font-family: var(--display);
+  font-size: 44px;
+  font-weight: 700;
+  color: #ffe2a3;
+  text-shadow: 0 0 16px rgba(255, 226, 163, 0.8);
+  animation: countPulse 1s ease-in-out infinite;
+}
+
+@keyframes countPulse {
+  0% { transform: scale(1.2); opacity: 0.6; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* --- Offer Cards Fly-out Animation --- */
+.bday-offer-card {
+  position: relative;
+  background: var(--white);
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+
+.bday-offer-card:hover {
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 22px 55px rgba(36, 19, 14, 0.16);
+  border-color: rgba(201, 154, 91, 0.5);
+}
+
+.bday-offer-card.fly-in {
+  animation: cardFlyIn 0.8s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes cardFlyIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 80px, -60px) scale(0.65);
+  }
+  70% {
+    transform: translate3d(0, -6px, 0) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* --- Reduced Motion Accessibility Mode --- */
+@media (prefers-reduced-motion: reduce) {
+  .bday-giftbox-3d,
+  .bday-balloon,
+  .bday-balloon-string,
+  .bday-countdown-number,
+  .bday-floating-item,
+  .bday-shockwave,
+  .bday-offer-card.fly-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .bday-giftbox-3d.has-exploded .bday-box-lid {
+    opacity: 0;
+  }
+}
+

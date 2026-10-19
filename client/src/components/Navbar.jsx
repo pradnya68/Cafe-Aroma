@@ -90,6 +90,9 @@ const Navbar = () => {
               <a className={`nav-link ${activeSection === 'menu' ? 'is-active' : ''}`} href="#menu">Menu</a>
               <a className={`nav-link ${activeSection === 'gallery' ? 'is-active' : ''}`} href="#gallery">Gallery</a>
               <a className={`nav-link ${activeSection === 'specialties' ? 'is-active' : ''}`} href="#specialties">Specialties</a>
+              <Link className="nav-link font-semibold text-gold hover:text-caramel flex items-center gap-1" to="/birthday" style={{ color: 'var(--gold)' }}>
+                <span>🎂 Birthdays</span>
+              </Link>
               <a className={`nav-link ${activeSection === 'contact' ? 'is-active' : ''}`} href="#contact">Contact</a>
             </>
           ) : (
@@ -99,6 +102,9 @@ const Navbar = () => {
               <Link className="nav-link" to="/#menu">Menu</Link>
               <Link className="nav-link" to="/#gallery">Gallery</Link>
               <Link className="nav-link" to="/#specialties">Specialties</Link>
+              <Link className="nav-link font-semibold flex items-center gap-1" to="/birthday" style={{ color: 'var(--gold)' }}>
+                <span>🎂 Birthdays</span>
+              </Link>
               <Link className="nav-link" to="/#contact">Contact</Link>
             </>
           )}
@@ -147,6 +153,7 @@ const Navbar = () => {
               <a href="#menu" onClick={closeMobile}>Menu <span>03</span></a>
               <a href="#gallery" onClick={closeMobile}>Gallery <span>04</span></a>
               <a href="#specialties" onClick={closeMobile}>Specialties <span>05</span></a>
+              <Link to="/birthday" onClick={closeMobile} style={{ color: 'var(--gold)' }}>🎂 Birthday Specials <span>★</span></Link>
               <a href="#contact" onClick={closeMobile}>Contact <span>06</span></a>
             </>
           ) : (
@@ -156,6 +163,7 @@ const Navbar = () => {
               <Link to="/#menu" onClick={closeMobile}>Menu <span>03</span></Link>
               <Link to="/#gallery" onClick={closeMobile}>Gallery <span>04</span></Link>
               <Link to="/#specialties" onClick={closeMobile}>Specialties <span>05</span></Link>
+              <Link to="/birthday" onClick={closeMobile} style={{ color: 'var(--gold)' }}>🎂 Birthday Specials <span>★</span></Link>
               <Link to="/#contact" onClick={closeMobile}>Contact <span>06</span></Link>
             </>
           )}

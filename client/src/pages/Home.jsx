@@ -2,6 +2,7 @@ import React from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
 import StatsSection from '../components/StatsSection';
+import BirthdayBanner from '../components/BirthdayBanner';
 import MenuSection from '../components/MenuSection';
 import SpecialSection from '../components/SpecialSection';
 import FeaturesSection from '../components/FeaturesSection';
@@ -16,6 +17,7 @@ const Home = () => {
       <Hero />
       <About />
       <StatsSection />
+      <BirthdayBanner />
       <MenuSection />
       <SpecialSection />
       <FeaturesSection />

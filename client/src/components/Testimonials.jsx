@@ -7,31 +7,38 @@ const defaultQuotes = [
     initials: 'RM',
     name: 'Rahul M.',
     role: 'Sunday regular',
+    rating: 5,
   },
   {
     quote: 'One of my favourite places to spend a Sunday morning. The team remembers my order and the light is just perfect.',
     initials: 'PS',
     name: 'Priya S.',
     role: 'Neighbourhood guest',
+    rating: 5,
   },
   {
     quote: 'The caramel latte is absolutely fantastic. You can taste the care in every single detail, from the beans to the last sip.',
     initials: 'AK',
     name: 'Aditya K.',
     role: 'Coffee enthusiast',
+    rating: 5,
   },
   {
     quote: 'A rare café that feels polished without ever feeling precious. Great for a meeting, a book, or absolutely nothing at all.',
     initials: 'NG',
     name: 'Nisha G.',
     role: 'First-time guest',
+    rating: 5,
   },
 ];
 
 const Testimonials = () => {
   const [reviews, setReviews] = useState(defaultQuotes);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isFading, setIsFading] = useState(false);
 
+  // Fetch reviews from API with fallback to defaultQuotes
   useEffect(() => {
     const fetchReviews = async () => {
       try {
@@ -40,9 +47,10 @@ const Testimonials = () => {
           setReviews(
             res.data.data.map((r) => ({
               quote: r.message,
-              initials: r.initials || r.name.substring(0, 2).toUpperCase(),
-              name: r.name,
+              initials: r.initials || (r.name ? r.name.substring(0, 2).toUpperCase() : 'CA'),
+              name: r.name || 'Café Guest',
               role: r.role || 'Guest',
+              rating: r.rating || 5,
             }))
           );
         }
@@ -53,12 +61,55 @@ const Testimonials = () => {
     fetchReviews();
   }, []);
 
-  const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? reviews.length - 1 : prev - 1));
-  };
+  const currentReview = reviews[activeIndex] || reviews[0] || defaultQuotes[0];
 
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev === reviews.length - 1 ? 0 : prev + 1));
+  // Typewriter effect + 2-second pause + automatic slide to next review
+  useEffect(() => {
+    if (!currentReview || !currentReview.quote) return;
+
+    const fullText = currentReview.quote;
+    let charIndex = 0;
+    setDisplayedText('');
+    setIsFading(false);
+
+    let typeInterval = null;
+    let pauseTimeout = null;
+    let fadeTimeout = null;
+
+    // Type character by character in real-time
+    typeInterval = setInterval(() => {
+      charIndex++;
+      setDisplayedText(fullText.slice(0, charIndex));
+
+      if (charIndex >= fullText.length) {
+        clearInterval(typeInterval);
+
+        // Pause 2 seconds after review is completely typed
+        pauseTimeout = setTimeout(() => {
+          setIsFading(true);
+
+          // Smooth transition to next review
+          fadeTimeout = setTimeout(() => {
+            setActiveIndex((prev) => (prev + 1) % reviews.length);
+          }, 350);
+        }, 2000);
+      }
+    }, 28);
+
+    // Lifecycle cleanup
+    return () => {
+      if (typeInterval) clearInterval(typeInterval);
+      if (pauseTimeout) clearTimeout(pauseTimeout);
+      if (fadeTimeout) clearTimeout(fadeTimeout);
+    };
+  }, [activeIndex, reviews]);
+
+  const handleDotClick = (idx) => {
+    if (idx === activeIndex) return;
+    setIsFading(true);
+    setTimeout(() => {
+      setActiveIndex(idx);
+    }, 200);
   };
 
   return (
@@ -77,27 +128,42 @@ const Testimonials = () => {
 
         <div className="testimonial-carousel reveal reveal--right" id="testimonialCarousel">
           <div className="testimonial-viewport" aria-live="polite">
-            {reviews.map((rev, idx) => (
-              <article
-                key={idx}
-                className={`testimonial-slide ${idx === activeIndex ? 'is-active' : ''}`}
-                data-index={idx}
-                aria-hidden={idx !== activeIndex}
-              >
-                <span className="quote-mark">“</span>
-                <blockquote>{rev.quote}</blockquote>
-                <div className="testimonial-author">
-                  <span className="author-avatar">{rev.initials}</span>
-                  <span>
-                    <strong>{rev.name}</strong>
-                    <small>{rev.role}</small>
-                  </span>
+            <article className={`testimonial-card ${isFading ? 'is-fading' : 'is-active'}`}>
+              <div className="testimonial-card-header">
+                <span className="quote-mark" aria-hidden="true">“</span>
+                <div
+                  className="testimonial-card-stars"
+                  aria-label={`${currentReview.rating || 5} out of 5 stars`}
+                >
+                  {[...Array(currentReview.rating || 5)].map((_, i) => (
+                    <span key={i}>★</span>
+                  ))}
                 </div>
-              </article>
-            ))}
+              </div>
+
+              {/* Zero-shift quote area: invisible sizer reserves exact space */}
+              <div className="testimonial-quote-box">
+                <p className="testimonial-quote-sizer" aria-hidden="true">
+                  {currentReview.quote}
+                </p>
+                <blockquote className="testimonial-quote-typed">
+                  {displayedText}
+                  <span className="typewriter-cursor" aria-hidden="true">|</span>
+                </blockquote>
+              </div>
+
+              <div className="testimonial-author">
+                <span className="author-avatar">{currentReview.initials}</span>
+                <div className="author-meta">
+                  <strong>{currentReview.name}</strong>
+                  <small>{currentReview.role}</small>
+                </div>
+              </div>
+            </article>
           </div>
 
-          <div className="carousel-controls">
+          {/* Navigation Dots Only (Arrows Removed) */}
+          <div className="carousel-controls carousel-controls--center">
             <div className="carousel-dots" role="tablist" aria-label="Testimonial slides">
               {reviews.map((_, idx) => (
                 <button
@@ -107,30 +173,9 @@ const Testimonials = () => {
                   role="tab"
                   aria-selected={idx === activeIndex}
                   aria-label={`Show testimonial ${idx + 1}`}
-                  onClick={() => setActiveIndex(idx)}
-                ></button>
+                  onClick={() => handleDotClick(idx)}
+                />
               ))}
-            </div>
-
-            <div className="carousel-arrows">
-              <button
-                className="round-button"
-                type="button"
-                id="testimonialPrev"
-                aria-label="Previous testimonial"
-                onClick={handlePrev}
-              >
-                <svg><use href="#icon-chevron-left"></use></svg>
-              </button>
-              <button
-                className="round-button"
-                type="button"
-                id="testimonialNext"
-                aria-label="Next testimonial"
-                onClick={handleNext}
-              >
-                <svg><use href="#icon-chevron-right"></use></svg>
-              </button>
             </div>
           </div>
         </div>

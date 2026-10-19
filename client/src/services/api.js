@@ -101,4 +101,14 @@ export const adminAPI = {
   getStats: () => api.get('/admin/stats'),
 };
 
+// Birthday Offers endpoints
+export const birthdayOfferAPI = {
+  getAll: (all = false) => api.get('/birthday-offers', { params: { all } }),
+  getById: (id) => api.get(`/birthday-offers/${id}`),
+  create: (data) => api.post('/birthday-offers', data),
+  update: (id, data) => api.put(`/birthday-offers/${id}`, data),
+  toggleStatus: (id) => api.put(`/birthday-offers/${id}/toggle`),
+  delete: (id) => api.delete(`/birthday-offers/${id}`),
+};
+
 export default api;

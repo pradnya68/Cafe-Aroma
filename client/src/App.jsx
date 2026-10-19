@@ -20,6 +20,7 @@ import ReservationPage from './pages/ReservationPage';
 import OrderPage from './pages/OrderPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import BirthdayPage from './pages/BirthdayPage';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
@@ -170,6 +171,7 @@ function App() {
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/specialties" element={<SpecialtiesPage />} />
+        <Route path="/birthday" element={<BirthdayPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/reservation" element={<ReservationPage />} />
         <Route path="/order" element={<OrderPage />} />

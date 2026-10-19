@@ -8,6 +8,7 @@ import {
   newsletterAPI,
   testimonialAPI,
   categoryAPI,
+  birthdayOfferAPI,
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -34,7 +35,8 @@ import {
   Menu as MenuIcon,
   Star,
   ShieldCheck,
-  ToggleLeft
+  ToggleLeft,
+  Gift
 } from 'lucide-react';
 
 const getStatusBadgeStyles = (status) => {
@@ -109,6 +111,7 @@ const AdminDashboard = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [admins, setAdmins] = useState([]);
+  const [birthdayOffers, setBirthdayOffers] = useState([]);
 
   // Modal States
   const [menuModalOpen, setMenuModalOpen] = useState(false);
@@ -122,6 +125,25 @@ const AdminDashboard = () => {
   const [adminForm, setAdminForm] = useState({ name: '', email: '', password: '', role: 'admin' });
   const [formSubmitting, setFormSubmitting] = useState(false);
 
+  // Birthday Offers Modal State
+  const [birthdayModalOpen, setBirthdayModalOpen] = useState(false);
+  const [editingBirthdayOffer, setEditingBirthdayOffer] = useState(null);
+  const [birthdayForm, setBirthdayForm] = useState({
+    title: '',
+    description: '',
+    category: 'combo',
+    image: '/assets/pastry-breakfast.jpg',
+    originalPrice: '',
+    discountedPrice: '',
+    discountPercentage: '',
+    specialReward: '',
+    validity: '',
+    terms: '',
+    badge: '',
+    highlights: '',
+    isActive: true,
+  });
+
   // Tab Filtering/Pagination States
   const [ordersState, setOrdersState] = useState({ search: '', status: 'all', type: 'all', page: 1 });
   const [resState, setResState] = useState({ search: '', status: 'all', page: 1 });
@@ -129,12 +151,13 @@ const AdminDashboard = () => {
   const [inqState, setInqState] = useState({ search: '', page: 1 });
   const [subState, setSubState] = useState({ search: '', page: 1 });
   const [revState, setRevState] = useState({ search: '', status: 'all', page: 1 });
+  const [bdayState, setBdayState] = useState({ search: '', status: 'all', page: 1 });
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, menuRes, ordersRes, reservationsRes, contactRes, newsRes, testRes, catRes] = await Promise.all([
-        adminAPI.getStats(), menuAPI.getAll(), orderAPI.getAll(), reservationAPI.getAll(), contactAPI.getAll(), newsletterAPI.getAll(), testimonialAPI.getAll(true), categoryAPI.getAll(),
+      const [statsRes, menuRes, ordersRes, reservationsRes, contactRes, newsRes, testRes, catRes, bdayRes] = await Promise.all([
+        adminAPI.getStats(), menuAPI.getAll(), orderAPI.getAll(), reservationAPI.getAll(), contactAPI.getAll(), newsletterAPI.getAll(), testimonialAPI.getAll(true), categoryAPI.getAll(), birthdayOfferAPI.getAll(true),
       ]);
 
       if (statsRes.data.success) setStats(statsRes.data.data);
@@ -145,6 +168,7 @@ const AdminDashboard = () => {
       if (newsRes.data.success) setSubscribers(newsRes.data.data.reverse());
       if (testRes.data.success) setTestimonials(testRes.data.data.reverse());
       if (catRes.data.success) setCategories(catRes.data.data);
+      if (bdayRes.data?.success) setBirthdayOffers(bdayRes.data.data);
 
       if (user?.role === 'superadmin') {
         try {
@@ -341,11 +365,107 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSaveBirthdayOffer = async (e) => {
+    e.preventDefault();
+    setFormSubmitting(true);
+    try {
+      const payload = {
+        ...birthdayForm,
+        originalPrice: birthdayForm.originalPrice ? Number(birthdayForm.originalPrice) : null,
+        discountedPrice: birthdayForm.discountedPrice !== '' ? Number(birthdayForm.discountedPrice) : null,
+      };
+
+      if (editingBirthdayOffer) {
+        const res = await birthdayOfferAPI.update(editingBirthdayOffer._id, payload);
+        if (res.data.success) {
+          showNotification(`Updated offer "${res.data.data.title}"`);
+        }
+      } else {
+        const res = await birthdayOfferAPI.create(payload);
+        if (res.data.success) {
+          showNotification(`Created offer "${res.data.data.title}"`);
+        }
+      }
+      setBirthdayModalOpen(false);
+      fetchDashboardData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error saving birthday offer');
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
+  const handleOpenAddBirthdayOffer = () => {
+    setEditingBirthdayOffer(null);
+    setBirthdayForm({
+      title: '',
+      description: '',
+      category: 'combo',
+      image: '/assets/pastry-breakfast.jpg',
+      originalPrice: '',
+      discountedPrice: '',
+      discountPercentage: '',
+      specialReward: '',
+      validity: '',
+      terms: '',
+      badge: '',
+      highlights: '',
+      isActive: true,
+    });
+    setBirthdayModalOpen(true);
+  };
+
+  const handleOpenEditBirthdayOffer = (offer) => {
+    setEditingBirthdayOffer(offer);
+    setBirthdayForm({
+      title: offer.title || '',
+      description: offer.description || '',
+      category: offer.category || 'combo',
+      image: offer.image || '/assets/pastry-breakfast.jpg',
+      originalPrice: offer.originalPrice ?? '',
+      discountedPrice: offer.discountedPrice ?? '',
+      discountPercentage: offer.discountPercentage || '',
+      specialReward: offer.specialReward || '',
+      validity: offer.validity || '',
+      terms: Array.isArray(offer.terms) ? offer.terms.join(', ') : (offer.terms || ''),
+      badge: offer.badge || '',
+      highlights: Array.isArray(offer.highlights) ? offer.highlights.join(', ') : (offer.highlights || ''),
+      isActive: offer.isActive !== undefined ? offer.isActive : true,
+    });
+    setBirthdayModalOpen(true);
+  };
+
+  const handleToggleBirthdayOffer = async (offer) => {
+    try {
+      await birthdayOfferAPI.toggleStatus(offer._id);
+      setBirthdayOffers((prev) =>
+        prev.map((o) => (o._id === offer._id ? { ...o, isActive: !o.isActive } : o))
+      );
+      showNotification(`Offer status updated for "${offer.title}"`);
+    } catch (err) {
+      console.error(err);
+      showNotification('Failed to toggle offer status', 'error');
+    }
+  };
+
+  const handleDeleteBirthdayOffer = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+    try {
+      await birthdayOfferAPI.delete(id);
+      setBirthdayOffers((prev) => prev.filter((o) => o._id !== id));
+      showNotification(`Deleted offer "${title}"`);
+    } catch (err) {
+      console.error(err);
+      showNotification('Failed to delete offer', 'error');
+    }
+  };
+
   const tabs = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'menu', label: 'Menu', icon: UtensilsCrossed },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'reservations', label: 'Reservations', icon: CalendarCheck },
+    { id: 'birthday', label: 'Birthday Offers', icon: Gift },
     { id: 'messages', label: 'Inquiries', icon: MessageSquare },
     { id: 'newsletter', label: 'Subscribers', icon: Mail },
     { id: 'testimonials', label: 'Reviews', icon: Quote },

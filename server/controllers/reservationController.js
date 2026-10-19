@@ -5,7 +5,7 @@ import Reservation from '../models/Reservation.js';
 // @access Public
 export const createReservation = async (req, res, next) => {
   try {
-    const { name, email, phone, date, time, guests, specialRequest } = req.body;
+    const { name, email, phone, date, time, guests, specialRequest, isBirthdayBooking, offerTitle, offerId } = req.body;
 
     if (!name || !email || !phone || !date || !time || !guests) {
       return res.status(400).json({
@@ -23,6 +23,9 @@ export const createReservation = async (req, res, next) => {
       guests,
       specialRequest: specialRequest || '',
       status: 'confirmed',
+      isBirthdayBooking: Boolean(isBirthdayBooking),
+      offerTitle: offerTitle || '',
+      offerId: offerId || null,
     });
 
     res.status(201).json({

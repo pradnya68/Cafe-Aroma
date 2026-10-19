@@ -40,6 +40,19 @@ const reservationSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'seated', 'cancelled', 'completed'],
       default: 'confirmed',
     },
+    isBirthdayBooking: {
+      type: Boolean,
+      default: false,
+    },
+    offerTitle: {
+      type: String,
+      default: '',
+    },
+    offerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BirthdayOffer',
+      default: null,
+    },
   },
   {
     timestamps: true,

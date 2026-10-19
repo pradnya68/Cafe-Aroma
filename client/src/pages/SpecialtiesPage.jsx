@@ -1,8 +1,6 @@
 import React from 'react';
 import SpecialSection from '../components/SpecialSection';
 import MenuCard from '../components/MenuCard';
-import { useCart } from '../context/CartContext';
-import { Sparkles, Coffee, Flame, Heart } from 'lucide-react';
 
 const signatureItems = [
   {
@@ -53,7 +51,7 @@ const SpecialtiesPage = () => {
         </div>
       </section>
 
-      {/* Featured Special Pour */}
+      {/* Featured Special Pour - Auto-Rotating Horizontal Slider */}
       <SpecialSection />
 
       {/* Signature Items Showcase */}
